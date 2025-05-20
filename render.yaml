@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: audit-gpt-backend
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python audit_gpt_backend.py"
+    envVars:
+      - key: OPENAI_API_KEY
+        value: replace-with-your-real-api-key
