@@ -7,11 +7,14 @@ import tempfile
 import docx
 import pandas as pd
 import pdfplumber
+from openai import OpenAI
 
 app = Flask(__name__)
 CORS(app)
 
-openai.api_key = 'your-openai-api-key'
+# Use environment variable for secure key management
+api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=api_key)
 
 def read_pdf(file_path):
     text = ''
@@ -52,24 +55,21 @@ def upload_file():
         else:
             return jsonify({'error': 'Unsupported file type'}), 400
 
-    # Call OpenAI GPT model
     prompt = f"Extract key audit-relevant insights from this document:\n{content[:3000]}"
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model='gpt-4',
             messages=[
                 {"role": "system", "content": "You are a senior auditor reviewing client documents."},
                 {"role": "user", "content": prompt}
             ]
         )
-        summary = response['choices'][0]['message']['content']
+        summary = response.choices[0].message.content
     except Exception as e:
         summary = f"OpenAI error: {str(e)}"
 
     return jsonify({'summary': summary})
 
 if __name__ == '__main__':
-    import os
-port = int(os.environ.get('PORT', 5000))
-app.run(host='0.0.0.0', port=port)
-
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
